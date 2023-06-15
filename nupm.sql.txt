@@ -1,0 +1,136 @@
+-- Create database
+CREATE DATABASE NUPM;
+
+-- Switch to the created database
+USE NUPM;
+
+-- Create users table
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL,
+  password VARCHAR(50) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create groups table
+CREATE TABLE groups (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  group_name VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create user_groups table
+CREATE TABLE user_groups (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  group_id INT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+);
+
+-- Create project_types table
+CREATE TABLE project_types (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type_name VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create projects table
+CREATE TABLE projects (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_key VARCHAR(10) NOT NULL,
+  project_name VARCHAR(100) NOT NULL,
+  type_id INT NOT NULL,
+  user_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (type_id) REFERENCES project_types(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Create defect_statuses table
+CREATE TABLE defect_statuses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  status_name VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create defect_severities table
+CREATE TABLE defect_severities (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  severity_name VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create defect_priorities table
+CREATE TABLE defect_priorities (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  priority_name VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create defects table
+CREATE TABLE defects (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  issue_id INT NOT NULL,
+  summary VARCHAR(255) NOT NULL,
+  description TEXT,
+  status_id INT NOT NULL,
+  severity_id INT NOT NULL,
+  priority_id INT NOT NULL,
+  reporter_id INT NOT NULL,
+  assignee_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (status_id) REFERENCES defect_statuses(id) ON DELETE CASCADE,
+  FOREIGN KEY (severity_id) REFERENCES defect_severities(id) ON DELETE CASCADE,
+  FOREIGN KEY (priority_id) REFERENCES defect_priorities(id) ON DELETE CASCADE,
+  FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (assignee_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Create sprints table
+CREATE TABLE sprints (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  sprint_name VARCHAR(100) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
+-- Create reports table
+CREATE TABLE reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sprint_id INT NOT NULL,
+  report_date DATE NOT NULL,
+  report_name VARCHAR(100) NOT NULL,
+  report_content TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (sprint_id) REFERENCES sprints(id) ON DELETE CASCADE
+);
+
+-- Create project_reports table
+CREATE TABLE project_reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  report_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE
+);
+
+-- Create audit_log table
+CREATE TABLE audit_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  table_name VARCHAR(50) NOT NULL,
+  operation VARCHAR(10) NOT NULL,
+  user_id INT NOT NULL,
+  project_id INT,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  details TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
